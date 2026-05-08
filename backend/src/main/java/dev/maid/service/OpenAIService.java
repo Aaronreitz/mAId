@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.maid.client.OpenAIClient;
 import dev.maid.dto.ChatRequest;
 import dev.maid.dto.ChatResponse;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -36,8 +37,37 @@ public class OpenAIService {
             );
         }
 
+        return openAIClient.createCompletion("Bearer " + apiKey.get(), buildBody(request, false))
+            .map(res -> new ChatResponse(
+                res.path("choices").path(0).path("message").path("content").asText(),
+                MODEL
+            ));
+    }
+
+    public Multi<String> stream(ChatRequest request) {
+        if (apiKey.isEmpty() || apiKey.get().isBlank()) {
+            return Multi.createFrom().failure(
+                new BadRequestException("OpenAI API key not configured — set OPENAI_API_KEY")
+            );
+        }
+
+        return openAIClient.streamCompletion("Bearer " + apiKey.get(), buildBody(request, true))
+            .map(data -> {
+                if ("[DONE]".equals(data)) return "";
+                try {
+                    var json = mapper.readTree(data);
+                    return json.path("choices").path(0).path("delta").path("content").asText("");
+                } catch (Exception e) {
+                    return "";
+                }
+            })
+            .filter(token -> !token.isEmpty());
+    }
+
+    private ObjectNode buildBody(ChatRequest request, boolean stream) {
         ObjectNode body = mapper.createObjectNode();
         body.put("model", MODEL);
+        if (stream) body.put("stream", true);
 
         ArrayNode messages = body.putArray("messages");
         for (var msg : request.messages()) {
@@ -45,11 +75,6 @@ public class OpenAIService {
                 .put("role", msg.role())
                 .put("content", msg.content());
         }
-
-        return openAIClient.createCompletion("Bearer " + apiKey.get(), body)
-            .map(res -> new ChatResponse(
-                res.path("choices").path(0).path("message").path("content").asText(),
-                MODEL
-            ));
+        return body;
     }
 }

@@ -231,3 +231,14 @@ body {
   cursor: not-allowed;
   transform: none;
 }
+
+/* ── Streaming cursor ── */
+.message.streaming .message-bubble::after {
+  content: '▎';
+  display: inline-block;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
