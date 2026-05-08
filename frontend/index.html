@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mAId — Your Personal AI Maid</title>
+    <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <div class="header-brand">
+                <span class="header-title">mAId</span>
+                <span class="header-subtitle">Your personal AI maid</span>
+            </div>
+            <div class="header-controls">
+                <select id="model-selector" class="model-select">
+                    <option value="claude-haiku-4-5">Claude Haiku</option>
+                    <option value="claude-sonnet-4-6" selected>Claude Sonnet</option>
+                    <option value="gpt-4o-mini" disabled>GPT-4o Mini (soon)</option>
+                    <option value="gpt-4o" disabled>GPT-4o (soon)</option>
+                </select>
+            </div>
+        </header>
+
+        <main class="chat-area" id="chat-area">
+            <div class="welcome-message" id="welcome">
+                <div class="welcome-icon">🌸</div>
+                <p>Konnichiwa! How can I assist you today?</p>
+            </div>
+        </main>
+
+        <footer class="input-area">
+            <form id="chat-form" class="chat-form">
+                <textarea
+                    id="user-input"
+                    class="user-input"
+                    placeholder="Type your message..."
+                    rows="1"
+                    autofocus
+                ></textarea>
+                <button type="submit" id="send-btn" class="send-btn" aria-label="Send">
+                    <span class="send-icon">&#10148;</span>
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <script src="src/chat.js"></script>
+</body>
+</html>
