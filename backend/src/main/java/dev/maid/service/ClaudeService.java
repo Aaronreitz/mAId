@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.maid.client.ClaudeClient;
 import dev.maid.dto.ChatRequest;
 import dev.maid.dto.ChatResponse;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -37,9 +38,41 @@ public class ClaudeService {
             );
         }
 
+        return claudeClient.createMessage(apiKey.get(), ANTHROPIC_VERSION, buildBody(request, false))
+            .map(res -> new ChatResponse(
+                res.path("content").path(0).path("text").asText(),
+                MODEL
+            ));
+    }
+
+    public Multi<String> stream(ChatRequest request) {
+        if (apiKey.isEmpty() || apiKey.get().isBlank()) {
+            return Multi.createFrom().failure(
+                new BadRequestException("Claude API key not configured — set CLAUDE_API_KEY")
+            );
+        }
+
+        return claudeClient.streamMessage(apiKey.get(), ANTHROPIC_VERSION, buildBody(request, true))
+            .map(data -> {
+                try {
+                    var json = mapper.readTree(data);
+                    if ("content_block_delta".equals(json.path("type").asText())
+                            && "text_delta".equals(json.path("delta").path("type").asText())) {
+                        return json.path("delta").path("text").asText("");
+                    }
+                    return "";
+                } catch (Exception e) {
+                    return "";
+                }
+            })
+            .filter(token -> !token.isEmpty());
+    }
+
+    private ObjectNode buildBody(ChatRequest request, boolean stream) {
         ObjectNode body = mapper.createObjectNode();
         body.put("model", MODEL);
         body.put("max_tokens", 4096);
+        if (stream) body.put("stream", true);
 
         ArrayNode messages = body.putArray("messages");
         for (var msg : request.messages()) {
@@ -47,11 +80,6 @@ public class ClaudeService {
                 .put("role", msg.role())
                 .put("content", msg.content());
         }
-
-        return claudeClient.createMessage(apiKey.get(), ANTHROPIC_VERSION, body)
-            .map(res -> new ChatResponse(
-                res.path("content").path(0).path("text").asText(),
-                MODEL
-            ));
+        return body;
     }
 }
