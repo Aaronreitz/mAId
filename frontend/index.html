@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mAId</title>
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <div class="app">
+
+    <header class="header">
+      <div class="header-left">
+        <h1 class="logo">mAId</h1>
+        <span class="tagline">your personal AI maid</span>
+      </div>
+      <div class="header-right">
+        <select id="model-select" class="model-select">
+          <option value="claude">✦ Claude</option>
+          <option value="gpt">✦ GPT</option>
+        </select>
+      </div>
+    </header>
+
+    <div class="chat-container">
+      <div id="messages" class="messages"></div>
+    </div>
+
+    <div class="input-container">
+      <textarea
+        id="user-input"
+        class="user-input"
+        placeholder="Type something, Master..."
+        rows="1"
+      ></textarea>
+      <button id="send-btn" class="send-btn">Send</button>
+    </div>
+
+  </div>
+  <script src="src/main.js"></script>
+</body>
+</html>
