@@ -1,0 +1,15 @@
+# Maven build output
+backend/target/
+
+# Environment — never commit real keys
+.env
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
