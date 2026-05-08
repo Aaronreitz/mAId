@@ -48,6 +48,25 @@ Browser (any device)
 
 ---
 
+## 🚀 Quick Start
+
+```bash
+# 1. Clone and enter the repo
+git clone https://github.com/Aaronreitz/mAId.git && cd mAId
+
+# 2. Add your API keys
+cp .env.example .env
+# Edit .env and fill in CLAUDE_API_KEY and/or OPENAI_API_KEY
+
+# 3. Launch the full stack
+docker compose up
+```
+
+- Frontend: http://localhost
+- Backend health: http://localhost:8080/api/health
+
+---
+
 ## 🚀 Roadmap
 
 - [x] Project setup & repository structure
