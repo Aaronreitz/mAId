@@ -1,0 +1,10 @@
+# Build output
+backend/target/
+
+# IDE
+.idea/
+*.iml
+
+# Env
+.env
+*.local
