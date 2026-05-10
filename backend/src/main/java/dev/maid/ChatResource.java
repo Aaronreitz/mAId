@@ -23,25 +23,20 @@ public class ChatResource {
 
     @POST
     public Uni<ChatResponse> chat(ChatRequest request) {
-        return switch (request.model()) {
-            case "claude" -> claudeService.chat(request);
-            case "gpt"    -> openAIService.chat(request);
-            default -> Uni.createFrom().failure(
-                new BadRequestException("Unknown model: " + request.model())
-            );
-        };
+        String model = request.model();
+        if (model != null && model.startsWith("claude")) return claudeService.chat(request);
+        if (model != null && model.startsWith("gpt"))    return openAIService.chat(request);
+        return Uni.createFrom().failure(new BadRequestException("Unknown model: " + model));
     }
 
     @POST
     @Path("/stream")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     public Multi<String> chatStream(ChatRequest request) {
-        return switch (request.model()) {
-            case "claude" -> claudeService.stream(request);
-            case "gpt"    -> openAIService.stream(request);
-            default -> Multi.createFrom().failure(
-                new BadRequestException("Unknown model: " + request.model())
-            );
-        };
+        String model = request.model();
+        if (model != null && model.startsWith("claude")) return claudeService.stream(request);
+        if (model != null && model.startsWith("gpt"))    return openAIService.stream(request);
+        return Multi.createFrom().failure(new BadRequestException("Unknown model: " + model));
     }
+
 }

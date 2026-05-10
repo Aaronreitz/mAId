@@ -20,8 +20,6 @@ import java.util.Optional;
 @ApplicationScoped
 public class OpenAIService {
 
-    private static final String MODEL = "gpt-4o";
-
     @RestClient
     OpenAIClient openAIClient;
 
@@ -41,7 +39,7 @@ public class OpenAIService {
         return openAIClient.createCompletion("Bearer " + apiKey.get(), buildBody(request, false))
             .map(res -> new ChatResponse(
                 res.path("choices").path(0).path("message").path("content").asText(),
-                MODEL
+                request.model()
             ));
     }
 
@@ -66,7 +64,7 @@ public class OpenAIService {
 
     private ObjectNode buildBody(ChatRequest request, boolean stream) {
         ObjectNode body = mapper.createObjectNode();
-        body.put("model", MODEL);
+        body.put("model", request.model());
         if (stream) body.put("stream", true);
 
         ArrayNode messages = body.putArray("messages");

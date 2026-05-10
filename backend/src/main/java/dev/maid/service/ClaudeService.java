@@ -20,7 +20,6 @@ import java.util.Optional;
 @ApplicationScoped
 public class ClaudeService {
 
-    private static final String MODEL = "claude-sonnet-4-6";
     private static final String ANTHROPIC_VERSION = "2023-06-01";
 
     @RestClient
@@ -42,7 +41,7 @@ public class ClaudeService {
         return claudeClient.createMessage(apiKey.get(), ANTHROPIC_VERSION, buildBody(request, false))
             .map(res -> new ChatResponse(
                 res.path("content").path(0).path("text").asText(),
-                MODEL
+                request.model()
             ));
     }
 
@@ -70,7 +69,7 @@ public class ClaudeService {
 
     private ObjectNode buildBody(ChatRequest request, boolean stream) {
         ObjectNode body = mapper.createObjectNode();
-        body.put("model", MODEL);
+        body.put("model", request.model());
         body.put("max_tokens", 4096);
         if (stream) body.put("stream", true);
 
