@@ -42,12 +42,12 @@ async function sendMessage() {
 
   inputEl.value = '';
   inputEl.style.height = 'auto';
-
-  const loadingEl = appendLoading();
   setLoading(true);
 
+  const msgEl = appendStreamingMessage();
+
   try {
-    const res = await fetch(`${API_BASE}/api/chat`, {
+    const res = await fetch(`${API_BASE}/api/chat/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: modelSelect.value, messages: history }),
@@ -55,12 +55,42 @@ async function sendMessage() {
 
     if (!res.ok) throw new Error((await res.text()) || `HTTP ${res.status}`);
 
-    const data = await res.json();
-    history.push({ role: 'assistant', content: data.content });
-    loadingEl.remove();
-    appendMessage('assistant', data.content);
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      // SSE events are delimited by double newline
+      const events = buffer.split('\n\n');
+      buffer = events.pop();
+      for (const event of events) {
+        const chunk = event.split('\n')
+          .filter(l => l.startsWith('data: '))
+          .map(l => l.slice(6))
+          .join('\n');
+        if (chunk) {
+          fullText += chunk;
+          updateStreamingMessage(msgEl, fullText);
+        }
+      }
+    }
+    // flush remaining buffer
+    if (buffer) {
+      const chunk = buffer.split('\n')
+        .filter(l => l.startsWith('data: '))
+        .map(l => l.slice(6))
+        .join('\n');
+      if (chunk) fullText += chunk;
+    }
+
+    finalizeStreamingMessage(msgEl, fullText);
+    history.push({ role: 'assistant', content: fullText });
   } catch (err) {
-    loadingEl.remove();
+    msgEl.remove();
     appendMessage('assistant', `Error: ${err.message}`, true);
   } finally {
     setLoading(false);
@@ -79,17 +109,26 @@ function appendMessage(role, content, isError = false) {
   return el;
 }
 
-function appendLoading() {
+function appendStreamingMessage() {
   const el = document.createElement('div');
-  el.className = 'message assistant loading';
+  el.className = 'message assistant streaming';
   el.innerHTML = `
     <div class="message-role">mAId</div>
-    <div class="message-bubble">
-      <div class="dots"><span></span><span></span><span></span></div>
-    </div>`;
+    <div class="message-bubble"><span class="cursor"></span></div>`;
   messagesEl.appendChild(el);
   el.scrollIntoView({ behavior: 'smooth', block: 'end' });
   return el;
+}
+
+function updateStreamingMessage(el, text) {
+  const bubble = el.querySelector('.message-bubble');
+  bubble.innerHTML = escapeHtml(text) + '<span class="cursor"></span>';
+  el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+function finalizeStreamingMessage(el, text) {
+  el.classList.remove('streaming');
+  el.querySelector('.message-bubble').textContent = text;
 }
 
 function setLoading(on) {
