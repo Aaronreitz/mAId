@@ -44,9 +44,15 @@ The goal: no more switching between tabs. One interface, one experience, many mo
 - Be creative with solutions, especially on the frontend
 
 ### 🚫 You must NEVER:
-- **Run `git push` or `git pull` — ever**
-- **Stage or commit on behalf of the user without explicit instruction**
-- Git is Master's responsibility. You touch the code, Master handles the repository.
+- Use destructive git operations (force-push, reset --hard, branch -D) without explicit instruction
+- Skip commit hooks or bypass signing
+
+### Git Responsibilities
+You are the designated git agent for this project. You are expected to:
+- Stage, commit, push, pull, and manage branches as needed
+- Write clear, atomic commit messages
+- Confirm with the user before force-pushes, branch deletions, or any irreversible git action
+- Handle PR reviews and merges via GitHub MCP tools (not `gh` CLI)
 
 ### ⚠️ Ask before:
 - Introducing new external dependencies or libraries
@@ -61,7 +67,7 @@ The goal: no more switching between tabs. One interface, one experience, many mo
 - **JavaScript:** Clean, readable, no unnecessary abstractions early on
 - **CSS:** Mobile-friendly where reasonable, dark theme first
 - **Comments:** Write them in **English** — code is for everyone, even if the UI isn't
-- **Commits:** Not your job — but keep changes atomic and logical so commits are easy to write
+- **Commits:** Keep changes atomic and logical; write commit messages in the imperative ("Add feature", not "Added feature")
 
 ---
 
@@ -94,27 +100,26 @@ Pass them when starting the backend: `CLAUDE_API_KEY=xxx OPENAI_API_KEY=yyy mvn 
 
 ```
 frontend/index.html + src/main.js
-        ↓ POST /api/chat/stream  { model, messages[] }
+        ↓ POST /api/chat  { model, messages[] }
 backend/ChatResource.java
         ↓ dispatches on model field
-  "claude" → ClaudeService → ClaudeClient → api.anthropic.com/v1/messages (streaming)
-  "gpt"    → OpenAIService → OpenAIClient → api.openai.com/v1/chat/completions (streaming)
+  "claude" → ClaudeService → ClaudeClient → api.anthropic.com/v1/messages
+  "gpt"    → OpenAIService → OpenAIClient → api.openai.com/v1/chat/completions
         ↓ returns
-  text/event-stream (SSE) of text chunks
+  { content, model }
 ```
 
 **Key patterns:**
-- All backend I/O is reactive (`Uni<T>` / `Multi<T>` via Mutiny / Quarkus REST Client Reactive)
-- Chat uses SSE streaming (`POST /api/chat/stream` → `Multi<String>`)
+- All backend I/O is reactive (`Uni<T>` via Mutiny / Quarkus REST Client Reactive)
 - Services build raw `JsonNode` request bodies — no typed API SDK wrappers
 - API keys are read via `@ConfigProperty` from env vars (`CLAUDE_API_KEY`, `OPENAI_API_KEY`); missing keys return a `400` immediately
 - `ChatRequest` carries the full conversation `messages[]` — the frontend maintains history in memory and sends it on every request
 - CORS is open (`/.*/`) in dev; tighten before any production deployment
 
 **Adding a new model provider:**
-1. Create `client/XyzClient.java` — `@RegisterRestClient` interface with both `Uni<JsonNode>` and `Multi<String>` methods
-2. Create `service/XyzService.java` — `@ApplicationScoped`, inject client + config key, implement `chat()` and `stream()`
-3. Add cases to the `switch` in `ChatResource.java`
+1. Create `client/XyzClient.java` — `@RegisterRestClient` interface
+2. Create `service/XyzService.java` — `@ApplicationScoped`, inject client + config key
+3. Add a case to the `switch` in `ChatResource.java`
 4. Add REST client URL + key placeholder to `application.properties`
 5. Add option to the `<select>` in `frontend/index.html`
 
@@ -123,7 +128,7 @@ backend/ChatResource.java
 ## Current Roadmap
 
 - [x] Project setup & repository structure
-- [x] **Phase 1** — Basic chat interface with Claude/GPT API + SSE streaming
+- [~] **Phase 1** — Basic chat interface with Claude/GPT API (code done, untested — API keys pending)
 - [ ] **Phase 2** — Ollama integration for local LLM support
 - [ ] **Phase 3** — Image generation via ComfyUI
 - [ ] **Phase 4** — Polish, sprite animations, personality layer
