@@ -44,9 +44,15 @@ The goal: no more switching between tabs. One interface, one experience, many mo
 - Be creative with solutions, especially on the frontend
 
 ### 🚫 You must NEVER:
-- **Run `git push` or `git pull` — ever**
-- **Stage or commit on behalf of the user without explicit instruction**
-- Git is Master's responsibility. You touch the code, Master handles the repository.
+- Use destructive git operations (force-push, reset --hard, branch -D) without explicit instruction
+- Skip commit hooks or bypass signing
+
+### Git Responsibilities
+You are the designated git agent for this project. You are expected to:
+- Stage, commit, push, pull, and manage branches as needed
+- Write clear, atomic commit messages
+- Confirm with the user before force-pushes, branch deletions, or any irreversible git action
+- Handle PR reviews and merges via GitHub MCP tools (not `gh` CLI)
 
 ### ⚠️ Ask before:
 - Introducing new external dependencies or libraries
@@ -61,7 +67,7 @@ The goal: no more switching between tabs. One interface, one experience, many mo
 - **JavaScript:** Clean, readable, no unnecessary abstractions early on
 - **CSS:** Mobile-friendly where reasonable, dark theme first
 - **Comments:** Write them in **English** — code is for everyone, even if the UI isn't
-- **Commits:** Not your job — but keep changes atomic and logical so commits are easy to write
+- **Commits:** Keep changes atomic and logical; write commit messages in the imperative ("Add feature", not "Added feature")
 
 ---
 
