@@ -7,6 +7,26 @@ No more switching between tabs. No more copy-pasting between tools. Just one pla
 
 ---
 
+## 🚀 Quick Start
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/Aaronreitz/mAId.git && cd mAId
+
+# 2. Add your API keys
+cp .env.example .env
+# Edit .env and fill in CLAUDE_API_KEY and/or OPENAI_API_KEY
+
+# 3. Launch
+docker compose up
+```
+
+Open **http://localhost** in your browser — the frontend is served by nginx on port 80 and proxies API calls to the backend on port 8080.
+
+> **Development mode (no Docker):** `cd backend && CLAUDE_API_KEY=xxx mvn quarkus:dev`, then open `frontend/index.html` directly in a browser.
+
+---
+
 ##  Features (Planned)
 
 -  **Chat** — Talk to powerful LLMs (Claude, GPT, or local models via Ollama)
