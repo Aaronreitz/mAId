@@ -7,6 +7,8 @@ const modelSelect = document.getElementById('model-select');
 
 const history = [];
 
+marked.use({ breaks: true, gfm: true });
+
 function init() {
   showEmptyState();
   inputEl.addEventListener('keydown', (e) => {
@@ -101,9 +103,12 @@ async function sendMessage() {
 function appendMessage(role, content, isError = false) {
   const el = document.createElement('div');
   el.className = `message ${role}${isError ? ' error' : ''}`;
+  const isAssistant = role === 'assistant';
+  const body = isAssistant ? marked.parse(content) : escapeHtml(content);
+  const bubbleClass = isAssistant ? 'message-bubble markdown' : 'message-bubble';
   el.innerHTML = `
     <div class="message-role">${role === 'user' ? 'You' : 'mAId'}</div>
-    <div class="message-bubble">${escapeHtml(content)}</div>`;
+    <div class="${bubbleClass}">${body}</div>`;
   messagesEl.appendChild(el);
   el.scrollIntoView({ behavior: 'smooth', block: 'end' });
   return el;
@@ -114,7 +119,7 @@ function appendStreamingMessage() {
   el.className = 'message assistant streaming';
   el.innerHTML = `
     <div class="message-role">mAId</div>
-    <div class="message-bubble"><span class="cursor"></span></div>`;
+    <div class="message-bubble markdown"><span class="cursor"></span></div>`;
   messagesEl.appendChild(el);
   el.scrollIntoView({ behavior: 'smooth', block: 'end' });
   return el;
@@ -122,13 +127,13 @@ function appendStreamingMessage() {
 
 function updateStreamingMessage(el, text) {
   const bubble = el.querySelector('.message-bubble');
-  bubble.innerHTML = escapeHtml(text) + '<span class="cursor"></span>';
+  bubble.innerHTML = marked.parse(text) + '<span class="cursor"></span>';
   el.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
 function finalizeStreamingMessage(el, text) {
   el.classList.remove('streaming');
-  el.querySelector('.message-bubble').textContent = text;
+  el.querySelector('.message-bubble').innerHTML = marked.parse(text);
 }
 
 function setLoading(on) {
