@@ -3,6 +3,7 @@ package dev.maid;
 import dev.maid.dto.ChatRequest;
 import dev.maid.dto.ChatResponse;
 import dev.maid.service.ClaudeService;
+import dev.maid.service.OllamaService;
 import dev.maid.service.OpenAIService;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
@@ -21,11 +22,15 @@ public class ChatResource {
     @Inject
     OpenAIService openAIService;
 
+    @Inject
+    OllamaService ollamaService;
+
     @POST
     public Uni<ChatResponse> chat(ChatRequest request) {
         String model = request.model();
-        if (model != null && model.startsWith("claude")) return claudeService.chat(request);
-        if (model != null && model.startsWith("gpt"))    return openAIService.chat(request);
+        if (model != null && model.startsWith("claude"))  return claudeService.chat(request);
+        if (model != null && model.startsWith("gpt"))     return openAIService.chat(request);
+        if (model != null && model.startsWith("ollama/")) return ollamaService.chat(request);
         return Uni.createFrom().failure(new BadRequestException("Unknown model: " + model));
     }
 
@@ -34,8 +39,9 @@ public class ChatResource {
     @Produces(MediaType.SERVER_SENT_EVENTS)
     public Multi<String> chatStream(ChatRequest request) {
         String model = request.model();
-        if (model != null && model.startsWith("claude")) return claudeService.stream(request);
-        if (model != null && model.startsWith("gpt"))    return openAIService.stream(request);
+        if (model != null && model.startsWith("claude"))  return claudeService.stream(request);
+        if (model != null && model.startsWith("gpt"))     return openAIService.stream(request);
+        if (model != null && model.startsWith("ollama/")) return ollamaService.stream(request);
         return Multi.createFrom().failure(new BadRequestException("Unknown model: " + model));
     }
 
