@@ -9,6 +9,7 @@ const history = [];
 
 function init() {
   showEmptyState();
+  loadModels();
   inputEl.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -20,6 +21,42 @@ function init() {
     inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + 'px';
   });
   sendBtn.addEventListener('click', sendMessage);
+}
+
+async function loadModels() {
+  try {
+    const res = await fetch(`${API_BASE}/api/models`);
+    if (!res.ok) return;
+    const models = await res.json();
+
+    const previousValue = modelSelect.value;
+    modelSelect.innerHTML = '';
+
+    const groups = {};
+    for (const m of models) {
+      if (!groups[m.provider]) groups[m.provider] = [];
+      groups[m.provider].push(m);
+    }
+
+    const providerLabels = { anthropic: 'Claude', openai: 'OpenAI', ollama: 'Local (Ollama)' };
+    for (const [provider, items] of Object.entries(groups)) {
+      const group = document.createElement('optgroup');
+      group.label = providerLabels[provider] || provider;
+      for (const m of items) {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = '✦ ' + m.name;
+        group.appendChild(opt);
+      }
+      modelSelect.appendChild(group);
+    }
+
+    if ([...modelSelect.options].some(o => o.value === previousValue)) {
+      modelSelect.value = previousValue;
+    }
+  } catch (e) {
+    // Backend not running yet; static fallback options in HTML remain
+  }
 }
 
 function showEmptyState() {
