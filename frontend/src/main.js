@@ -119,7 +119,7 @@ function appendStreamingMessage() {
   el.className = 'message assistant streaming';
   el.innerHTML = `
     <div class="message-role">mAId</div>
-    <div class="message-bubble markdown"><span class="cursor"></span></div>`;
+    <div class="message-bubble"><span class="cursor"></span></div>`;
   messagesEl.appendChild(el);
   el.scrollIntoView({ behavior: 'smooth', block: 'end' });
   return el;
@@ -127,13 +127,15 @@ function appendStreamingMessage() {
 
 function updateStreamingMessage(el, text) {
   const bubble = el.querySelector('.message-bubble');
-  bubble.innerHTML = marked.parse(text) + '<span class="cursor"></span>';
+  bubble.innerHTML = escapeHtml(text) + '<span class="cursor"></span>';
   el.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
 function finalizeStreamingMessage(el, text) {
   el.classList.remove('streaming');
-  el.querySelector('.message-bubble').innerHTML = marked.parse(text);
+  const bubble = el.querySelector('.message-bubble');
+  bubble.classList.add('markdown');
+  bubble.innerHTML = marked.parse(text);
 }
 
 function setLoading(on) {
