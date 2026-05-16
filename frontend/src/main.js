@@ -7,6 +7,8 @@ const modelSelect = document.getElementById('model-select');
 
 const history = [];
 
+marked.use({ breaks: true, gfm: true });
+
 function init() {
   showEmptyState();
   inputEl.addEventListener('keydown', (e) => {
@@ -128,7 +130,9 @@ function updateStreamingMessage(el, text) {
 
 function finalizeStreamingMessage(el, text) {
   el.classList.remove('streaming');
-  el.querySelector('.message-bubble').textContent = text;
+  const bubble = el.querySelector('.message-bubble');
+  bubble.classList.add('markdown');
+  bubble.innerHTML = marked.parse(text);
 }
 
 function setLoading(on) {
